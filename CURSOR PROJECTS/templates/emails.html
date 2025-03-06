@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SelfMail - Your Emails</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #fff;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a73e8;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #1a73e8;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            transform: rotate(-10deg);
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .email-list {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .email-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .email-item:last-child {
+            border-bottom: none;
+        }
+
+        .email-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(4px);
+        }
+
+        .email-item.selected {
+            background-color: #e8f0fe;
+            border-left: 4px solid #1a73e8;
+        }
+
+        .email-sender {
+            font-weight: 600;
+            color: #1a73e8;
+            min-width: 200px;
+        }
+
+        .email-subject {
+            font-weight: 500;
+            flex-grow: 1;
+        }
+
+        .email-date {
+            color: #666;
+            font-size: 0.9rem;
+            min-width: 150px;
+            text-align: right;
+        }
+
+        .email-content {
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .email-content.active {
+            display: block;
+        }
+
+        .email-content-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .email-content-subject {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1a73e8;
+        }
+
+        .email-content-meta {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .email-content-body {
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background-color: #fff3f3;
+            border: 1px solid #ffcdd2;
+            color: #d32f2f;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .error-details {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #1a73e8;
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background-color: #1557b0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="logo">
+                <div class="logo-icon">S</div>
+                <span>SelfMail</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
+        </div>
+
+        <div class="error" id="error-message">
+            <div>Error loading emails</div>
+            <div class="error-details" id="error-details"></div>
+        </div>
+
+        <div id="email-list" class="email-list">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <div>Loading emails...</div>
+            </div>
+        </div>
+
+        <div id="email-content" class="email-content">
+            <div class="email-content-header">
+                <div class="email-content-subject"></div>
+                <div class="email-content-meta"></div>
+            </div>
+            <div class="email-content-body"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentEmail = null;
+        let isLoading = false;
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+
+        async function fetchEmails() {
+            if (isLoading) return;
+            
+            const emailList = document.getElementById('email-list');
+            const errorMessage = document.getElementById('error-message');
+            const errorDetails = document.getElementById('error-details');
+            
+            isLoading = true;
+            emailList.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Loading emails...</div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/get_emails');
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                errorMessage.classList.remove('active');
+                
+                if (data.emails.length === 0) {
+                    emailList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📧</div>
+                            <div class="empty-state-text">No emails found</div>
+                            <button class="refresh-btn" onclick="fetchEmails()">Refresh</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                emailList.innerHTML = data.emails.map(email => `
+                    <div class="email-item" onclick="showEmail('${email.id}')">
+                        <div class="email-sender">${email.sender}</div>
+                        <div class="email-subject">${email.subject}</div>
+                        <div class="email-date">${new Date(email.date).toLocaleString()}</div>
+                    </div>
+                `).join('');
+
+                retryCount = 0; // Reset retry count on success
+            } catch (error) {
+                errorMessage.classList.add('active');
+                errorDetails.textContent = error.message;
+                
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    emailList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📧</div>
+                            <div class="empty-state-text">Error loading emails (Attempt ${retryCount}/${MAX_RETRIES})</div>
+                            <button class="refresh-btn" onclick="fetchEmails()">Try Again</button>
+                        </div>
+                    `;
+                } else {
+                    emailList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📧</div>
+                            <div class="empty-state-text">Unable to load emails after ${MAX_RETRIES} attempts</div>
+                            <button class="refresh-btn" onclick="window.location.reload()">Reload Page</button>
+                        </div>
+                    `;
+                }
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function showEmail(emailId) {
+            if (isLoading) return;
+            
+            const emailContent = document.getElementById('email-content');
+            const emailItems = document.querySelectorAll('.email-item');
+            
+            // Update selected state
+            emailItems.forEach(item => item.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            if (currentEmail && currentEmail.id === emailId) {
+                emailContent.classList.add('active');
+                return;
+            }
+
+            isLoading = true;
+            emailContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Loading email...</div>
+                </div>
+            `;
+            emailContent.classList.add('active');
+
+            try {
+                const response = await fetch(`/get_email/${emailId}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const email = data.email;
+                currentEmail = email;
+
+                emailContent.innerHTML = `
+                    <div class="email-content-header">
+                        <div class="email-content-subject">${email.subject}</div>
+                        <div class="email-content-meta">From: ${email.sender} • ${new Date(email.date).toLocaleString()}</div>
+                    </div>
+                    <div class="email-content-body">${email.body}</div>
+                `;
+            } catch (error) {
+                emailContent.innerHTML = `
+                    <div class="error">
+                        <div>Error loading email</div>
+                        <div class="error-details">${error.message}</div>
+                        <button class="refresh-btn" onclick="showEmail('${emailId}')">Try Again</button>
+                    </div>
+                `;
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Load emails when page loads
+        fetchEmails();
+
+        // Refresh emails every 5 minutes
+        setInterval(fetchEmails, 5 * 60 * 1000);
+    </script>
+</body>
+</html> 
